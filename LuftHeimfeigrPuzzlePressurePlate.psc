@@ -6,6 +6,7 @@ Scriptname LuftHeimfeigrPuzzlePressurePlate extends PressurePlate
 ; 3. In CK, set the variable "puzzlePosition" to a different value on each trigger.  This is the value that locates it in the puzzle.
 ; 4. Go down to the bottom of this script in the "OnInit" Event and set the arrays that are valid paths to unlock the puzzle.  
 ;	Currently, there are two example paths: [1,3,5,2,4] and [4,1,2,5,3]
+; 5. Go down to the line that says "TODO: Make something interesting happen when the puzzle is solved" and put in your code
 
 ; Valid paths that unlock the puzzle, set automatically on init.  See the OnInit() event below
 int[] validPath1
@@ -40,6 +41,7 @@ Event OnActivate(ObjectReference akActivator)
 			Debug.Notification("User path is valid")
 			Debug.Trace("User path is valid")
 			if LuftNumberOfSelectedPlates.GetValueInt() == 5
+				; TODO: Make something interesting happen when the puzzle is solved
 				Debug.Notification("Success!  You unlocked the puzzle!")
 			endif
 		else
