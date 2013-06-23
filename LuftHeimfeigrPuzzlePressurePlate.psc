@@ -7,7 +7,7 @@ Scriptname LuftHeimfeigrPuzzlePressurePlate extends PressurePlate
 ;	This is the value that locates it in the puzzle.  These should be values 1-5.  I assigned them in a clockwise
 ;	fashion such that the trigger at the top is 1, the one to the right is 2, and so forth around the circle.
 ; 4. Go down to the bottom of this script in the "OnInit" Event and set the arrays that are valid paths to unlock the puzzle.  
-;	Currently, there are two example paths: [1,3,5,2,4,1] and [4,1,2,5,3,1]
+;	Currently, there are two example paths: [1,3,5,2,4,1] and [1,4,2,5,3,1]
 ; 5. Go down to the line that says "TODO: Make something interesting happen when the puzzle is solved" and put in your code
 
 ; This script was written to handle 6 selected plates.  If you need add one, do this:
