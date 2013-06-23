@@ -28,7 +28,6 @@ Scriptname LuftHeimfeigrPuzzlePressurePlate extends PressurePlate
 int[] validPath1
 int[] validPath2
 
-bool Processing    					; Whether the script is currently runnning
 int Property puzzlePosition	Auto 	; The int that identifies where this piece lies in the puzzle
 
 ; Arrays can not be GlobalVariables, so each item in the array is stored globally rather than the array itself
@@ -39,13 +38,18 @@ GlobalVariable Property LuftSelectedPlate4 Auto
 GlobalVariable Property LuftSelectedPlate5 Auto
 GlobalVariable Property LuftSelectedPlate6 Auto
 GlobalVariable Property LuftNumberOfSelectedPlates Auto ; counter telling me how many plates have been selected
+GlobalVariable Property HasFinished	Auto				; Prevent anything from happening if the player has already completed the puzzle
+
+ObjectReference Property StairPillar Auto 				; The object to be activated when the puzzle is completed
+GlobalVariable Property StairPillarActivated Auto 		; Keep track of whether the stairwell has been activated
+String Property StairPillarAnimation Auto
+ObjectReference Property DustEffect Auto 				; Dust to show on puzzle success
+Sound Property RumbleSound Auto 				; Sound to play on puzzle success
+Sound Property DoorSound Auto
 
 Event OnActivate(ObjectReference akActivator)
-	Debug.Trace("OnActivate called")
-	utility.wait(0.5)
-	if !processing	; OnActivate is called twice back-to-back.  I don't know why, but this prevents confusion due to being called twice
-		processing = true
-		Debug.Trace("Processing")
+	if (HasFinished.GetValueInt() != 1)
+		Debug.Trace("OnActivate called")
 		UpdateUserPath() ; Take into account which plate the user just activated
 		Debug.Trace("I am getting through UpdateUserPath")
 
@@ -55,51 +59,63 @@ Event OnActivate(ObjectReference akActivator)
 		Debug.Trace(validPath)
 
 		if validPath
-			Debug.Notification("User path is valid")
 			Debug.Trace("User path is valid")
 			if LuftNumberOfSelectedPlates.GetValueInt() == 6
-				; TODO: Make something interesting happen when the puzzle is solved
-				Debug.Notification("Success!  You unlocked the puzzle!")
-				ResetPuzzle()	; Reset the puzzle so that it could be used again
+				PuzzleFinished()
 			endif
 		else
 			ResetPuzzle()
 		endif
+		GoToState("Inactive")
+		playAnimation("Up")
 	endif
-	processing = false
-	GoToState("Inactive")
-	playAnimation("Up")
 EndEvent
 
+Function PuzzleFinished()	; What happens when the user solves the puzzle
+	; TODO: Make something interesting happen when the puzzle is solved
+	HasFinished.SetValueInt(1)
+	if StairPillarActivated.GetValueInt() != 1
+		Game.ShakeCamera(afStrength = 0.2, afDuration = 1)
+		DustEffect.Activate(self)
+		RumbleSound.Play(Game.GetPlayer())
+		DoorSound.Play(StairPillar)
+		StairPillar.PlayAnimationAndWait("256Up", "done")
+		StairPillarActivated.SetValueInt(1)
+	endIf
+	Debug.Notification("Success!  You unlocked the puzzle!")
+	Debug.Trace("Success! You unlocked the puzzle!")
+	ResetPuzzle()	; Reset the puzzle so that it could be used again
+EndFunction
+
 Function ResetPuzzle()
-			Debug.Notification("Reset")
-			Debug.Trace("Reset")
-			LuftSelectedPlate1.SetValueInt(0)
-			LuftSelectedPlate2.SetValueInt(0)
-			LuftSelectedPlate3.SetValueInt(0)
-			LuftSelectedPlate4.SetValueInt(0)
-			LuftSelectedPlate5.SetValueInt(0)
-			LuftSelectedPlate6.SetValueInt(0)
-			LuftNumberOfSelectedPlates.SetValueInt(0)
+	Debug.Notification("Reset")
+	Debug.Trace("Reset")
+	LuftSelectedPlate1.SetValueInt(0)
+	LuftSelectedPlate2.SetValueInt(0)
+	LuftSelectedPlate3.SetValueInt(0)
+	LuftSelectedPlate4.SetValueInt(0)
+	LuftSelectedPlate5.SetValueInt(0)
+	LuftSelectedPlate6.SetValueInt(0)
+	LuftNumberOfSelectedPlates.SetValueInt(0)
 EndFunction
 
 ; TODO: There must be some way to reduce this hard-codedness
 Function UpdateUserPath()
 	Debug.Trace("puzzlePosition = " + puzzlePosition)
-	if LuftNumberOfSelectedPlates.GetValueInt() == 0 ; This number will be zero when the first trigger is selected, so it is always one number below the actual number of selected plates
+	LuftNumberOfSelectedPlates.SetValueInt(LuftNumberOfSelectedPlates.GetValueInt() + 1)
+	if LuftNumberOfSelectedPlates.GetValueInt() == 1
 		LuftSelectedPlate1.SetValueInt(puzzlePosition)
-	elseif LuftNumberOfSelectedPlates.GetValueInt() == 1
-		LuftSelectedPlate2.SetValueInt(puzzlePosition)
 	elseif LuftNumberOfSelectedPlates.GetValueInt() == 2
-		LuftSelectedPlate3.SetValueInt(puzzlePosition)
+		LuftSelectedPlate2.SetValueInt(puzzlePosition)
 	elseif LuftNumberOfSelectedPlates.GetValueInt() == 3
-		LuftSelectedPlate4.SetValueInt(puzzlePosition)
+		LuftSelectedPlate3.SetValueInt(puzzlePosition)
 	elseif LuftNumberOfSelectedPlates.GetValueInt() == 4
-		LuftSelectedPlate5.SetValueInt(puzzlePosition)
+		LuftSelectedPlate4.SetValueInt(puzzlePosition)
 	elseif LuftNumberOfSelectedPlates.GetValueInt() == 5
+		LuftSelectedPlate5.SetValueInt(puzzlePosition)
+	elseif LuftNumberOfSelectedPlates.GetValueInt() == 6
 		LuftSelectedPlate6.SetValueInt(puzzlePosition)
 	endif
-	LuftNumberOfSelectedPlates.SetValueInt(LuftNumberOfSelectedPlates.GetValueInt() + 1)
 	Debug.Notification("LuftNumberOfSelectedPlates = " + LuftNumberOfSelectedPlates.GetValueInt())
 EndFunction
 
@@ -139,7 +155,7 @@ EndFunction
 
 ; Set the valid path arrays so that they don't need to be manually set on every object in CK
 Event OnInit()
-	validPath1 = new int[5]
+	validPath1 = new int[6]
 	validPath1[0] = 1
 	validPath1[1] = 3
 	validPath1[2] = 5
@@ -147,11 +163,11 @@ Event OnInit()
 	validPath1[4] = 4
 	validPath1[5] = 1
 
-	validPath2 = new int[5]
-	validPath2[0] = 4
-	validPath2[1] = 1
+	validPath2 = new int[6]
+	validPath2[0] = 1
+	validPath2[1] = 4
 	validPath2[2] = 2
 	validPath2[3] = 5
 	validPath2[4] = 3
-	validPath1[5] = 1
+	validPath2[5] = 1
 EndEvent
