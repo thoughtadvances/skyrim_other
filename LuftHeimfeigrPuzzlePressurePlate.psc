@@ -57,14 +57,23 @@ Event OnActivate(ObjectReference akActivator)
 		if validPath
 			Debug.Notification("User path is valid")
 			Debug.Trace("User path is valid")
-			if LuftNumberOfSelectedPlates.GetValueInt() == 5
+			if LuftNumberOfSelectedPlates.GetValueInt() == 6
 				; TODO: Make something interesting happen when the puzzle is solved
 				Debug.Notification("Success!  You unlocked the puzzle!")
+				ResetPuzzle()	; Reset the puzzle so that it could be used again
 			endif
 		else
+			ResetPuzzle()
+		endif
+	endif
+	processing = false
+	GoToState("Inactive")
+	playAnimation("Up")
+EndEvent
+
+Function ResetPuzzle()
 			Debug.Notification("Reset")
 			Debug.Trace("Reset")
-			; Reset()
 			LuftSelectedPlate1.SetValueInt(0)
 			LuftSelectedPlate2.SetValueInt(0)
 			LuftSelectedPlate3.SetValueInt(0)
@@ -72,12 +81,7 @@ Event OnActivate(ObjectReference akActivator)
 			LuftSelectedPlate5.SetValueInt(0)
 			LuftSelectedPlate6.SetValueInt(0)
 			LuftNumberOfSelectedPlates.SetValueInt(0)
-		endif
-	endif
-	processing = false
-	GoToState("Inactive")
-	playAnimation("Up")
-EndEvent
+EndFunction
 
 ; TODO: There must be some way to reduce this hard-codedness
 Function UpdateUserPath()
