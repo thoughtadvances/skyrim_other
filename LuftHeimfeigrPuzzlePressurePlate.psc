@@ -7,8 +7,22 @@ Scriptname LuftHeimfeigrPuzzlePressurePlate extends PressurePlate
 ;	This is the value that locates it in the puzzle.  These should be values 1-5.  I assigned them in a clockwise
 ;	fashion such that the trigger at the top is 1, the one to the right is 2, and so forth around the circle.
 ; 4. Go down to the bottom of this script in the "OnInit" Event and set the arrays that are valid paths to unlock the puzzle.  
-;	Currently, there are two example paths: [1,3,5,2,4] and [4,1,2,5,3]
+;	Currently, there are two example paths: [1,3,5,2,4,1] and [4,1,2,5,3,1]
 ; 5. Go down to the line that says "TODO: Make something interesting happen when the puzzle is solved" and put in your code
+
+; This script was written to handle 6 selected plates.  If you need add one, do this:
+; 1. Add a GlobalVariable "LuftSelectedPlate7" in the fashion shown below
+; 2. Add a LuftSelectedPlate.SetValueInt(0) in the reset section
+; 3. Add a line to the UpdateUserPath() Function:
+; elseif LuftNumberOfSelectedPlates.GetValueInt() == 5
+;		LuftSelectedPlate6.SetValueInt(puzzlePosition)
+; 4. In the UserPath() Function, increase the total number of slots in the array: new int[6] and set that new slot: userPath[5] = LuftSelectedPlate6.GetValueInt()
+; 5. Define the new slot on every validUserPath that is defined in the OnInit() Function
+
+; Adding a validUserPath
+; 1. Add the variable: int[] validPath3
+; 2. Define it in the OnInit() function in the same fashion as the others
+; 3. Add an OR statement to the if statement in UserPathIsValid() like this: || UserPathIsValidForPath(validPath3)
 
 ; Valid paths that unlock the puzzle, set automatically on init.  See the OnInit() event below
 int[] validPath1
@@ -18,11 +32,12 @@ bool Processing    					; Whether the script is currently runnning
 int Property puzzlePosition	Auto 	; The int that identifies where this piece lies in the puzzle
 
 ; Arrays can not be GlobalVariables, so each item in the array is stored globally rather than the array itself
-GlobalVariable Property LuftSelectedPlate1 Auto
-GlobalVariable Property LuftSelectedPlate2 Auto
+GlobalVariable Property LuftSelectedPlate1 Auto 	; The puzzlePosition number of the first plate selected by the user
+GlobalVariable Property LuftSelectedPlate2 Auto 	; The second plate number selected by the user...
 GlobalVariable Property LuftSelectedPlate3 Auto
 GlobalVariable Property LuftSelectedPlate4 Auto
 GlobalVariable Property LuftSelectedPlate5 Auto
+GlobalVariable Property LuftSelectedPlate6 Auto
 GlobalVariable Property LuftNumberOfSelectedPlates Auto ; counter telling me how many plates have been selected
 
 Event OnActivate(ObjectReference akActivator)
@@ -55,6 +70,7 @@ Event OnActivate(ObjectReference akActivator)
 			LuftSelectedPlate3.SetValueInt(0)
 			LuftSelectedPlate4.SetValueInt(0)
 			LuftSelectedPlate5.SetValueInt(0)
+			LuftSelectedPlate6.SetValueInt(0)
 			LuftNumberOfSelectedPlates.SetValueInt(0)
 		endif
 	endif
@@ -66,7 +82,7 @@ EndEvent
 ; TODO: There must be some way to reduce this hard-codedness
 Function UpdateUserPath()
 	Debug.Trace("puzzlePosition = " + puzzlePosition)
-	if LuftNumberOfSelectedPlates.GetValueInt() == 0
+	if LuftNumberOfSelectedPlates.GetValueInt() == 0 ; This number will be zero when the first trigger is selected, so it is always one number below the actual number of selected plates
 		LuftSelectedPlate1.SetValueInt(puzzlePosition)
 	elseif LuftNumberOfSelectedPlates.GetValueInt() == 1
 		LuftSelectedPlate2.SetValueInt(puzzlePosition)
@@ -76,6 +92,8 @@ Function UpdateUserPath()
 		LuftSelectedPlate4.SetValueInt(puzzlePosition)
 	elseif LuftNumberOfSelectedPlates.GetValueInt() == 4
 		LuftSelectedPlate5.SetValueInt(puzzlePosition)
+	elseif LuftNumberOfSelectedPlates.GetValueInt() == 5
+		LuftSelectedPlate6.SetValueInt(puzzlePosition)
 	endif
 	LuftNumberOfSelectedPlates.SetValueInt(LuftNumberOfSelectedPlates.GetValueInt() + 1)
 	Debug.Notification("LuftNumberOfSelectedPlates = " + LuftNumberOfSelectedPlates.GetValueInt())
@@ -96,12 +114,13 @@ bool Function UserPathIsValidForPath(int[] validArray)
 EndFunction
 
 int[] Function UserPath()
-	int[] userPath = new int[5]
+	int[] userPath = new int[6]
 	userPath[0] = LuftSelectedPlate1.GetValueInt()
 	userPath[1] = LuftSelectedPlate2.GetValueInt()
 	userPath[2] = LuftSelectedPlate3.GetValueInt()
 	userPath[3] = LuftSelectedPlate4.GetValueInt()
 	userPath[4] = LuftSelectedPlate5.GetValueInt()
+	userPath[5] = LuftSelectedPlate6.GetValueInt()
 	return userPath
 EndFunction
 
@@ -114,25 +133,6 @@ bool Function UserPathIsValid()
 	endif
 EndFunction
 
-; Convenience function for adding a slot to an existing array
-int[] Function ExtendArray(int[] array)
-	int counter = 0
-	int[] newArray
-	if (array.length == 1)
-		newArray = new int[2]
-	elseif (array.length == 2)
-		newArray = new int[3]
-	elseif (array.length == 3)
-		newArray = new int[4]
-	elseif (array.length == 4)
-		newArray = new int[5]
-	endif
-	while (counter < array.length)
-		newArray[counter] = array[counter]
-	endWhile
-	return newArray
-EndFunction
-
 ; Set the valid path arrays so that they don't need to be manually set on every object in CK
 Event OnInit()
 	validPath1 = new int[5]
@@ -141,6 +141,7 @@ Event OnInit()
 	validPath1[2] = 5
 	validPath1[3] = 2
 	validPath1[4] = 4
+	validPath1[5] = 1
 
 	validPath2 = new int[5]
 	validPath2[0] = 4
@@ -148,4 +149,5 @@ Event OnInit()
 	validPath2[2] = 2
 	validPath2[3] = 5
 	validPath2[4] = 3
+	validPath1[5] = 1
 EndEvent
