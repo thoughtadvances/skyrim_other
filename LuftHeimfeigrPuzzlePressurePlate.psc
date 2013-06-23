@@ -11,8 +11,8 @@ Scriptname LuftHeimfeigrPuzzlePressurePlate extends PressurePlate
 int[] validPath1
 int[] validPath2
 
-bool Processing    	; Whether the script is currently runnning
-int puzzlePosition	; The int that identifies where this piece lies in the puzzle
+bool Processing    					; Whether the script is currently runnning
+int Property puzzlePosition	Auto 	; The int that identifies where this piece lies in the puzzle
 
 ; Arrays can not be GlobalVariables, so each item in the array is stored globally rather than the array itself
 GlobalVariable Property LuftSelectedPlate1 Auto
